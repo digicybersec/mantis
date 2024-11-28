@@ -1,0 +1,33 @@
+name: Deploy
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: digicybersec.azurecr.io
+      SERVICE: mantis
+      VERSION: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@master
+      - uses: imranismail/setup-kustomize@v1
+
+      - uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.REGISTRY }}
+          username: ${{ secrets.acr_digicybersec_username }}
+          password: ${{ secrets.acr_digicybersec_password }}
+
+      - uses: docker/setup-buildx-action@v1
+
+      - name: build and push image to ACR
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ env.VERSION }}, ${{ env.REGISTRY }}/${{ env.SERVICE }}:latest
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.SERVICE }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.SERVICE }}:buildcache,mode=max

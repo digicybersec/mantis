@@ -6,3 +6,4 @@ src
 stacks
 docker/configs
 .venv
+.local

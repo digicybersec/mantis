@@ -75,7 +75,7 @@ RUN mv Corsy /usr/bin
 RUN rm -rf *
 
 # Install Poetry
-RUN pip install poetry==1.4.2
+RUN pip install poetry==1.8.4
 
 # Add Poetry to PATH
 ENV PATH="/root/.local/bin:$PATH"
@@ -90,12 +90,12 @@ ENV POETRY_NO_INTERACTION=1 \
 COPY pyproject.toml poetry.lock* /home/mantis/
 
 # Install dependencies using Poetry
-RUN poetry install --without dev --no-root && rm -rf $POETRY_CACHE_DIR
+RUN poetry install --no-root --no-interaction --no-ansi && rm -rf $POETRY_CACHE_DIR
 
 # Creating Mantis alias
 RUN echo 'export PS1="🦗 Mantis > " && \
-alias mantis="python /home/mantis/launch.py" && \
-alias help="python /home/mantis/launch.py --help"' | tee -a ~/.bashrc
+    alias mantis="python /home/mantis/launch.py" && \
+    alias help="python /home/mantis/launch.py --help"' | tee -a ~/.bashrc
 
 RUN echo 'echo -e "\033[1;94mWelcome to Mantis Shell! Enter help for more details\033[0m"' | tee -a ~/.bashrc
 
