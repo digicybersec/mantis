@@ -113,3 +113,5 @@ RUN mkdir /home/mantis/logs/tool_logs
 
 # Required for displaying stdout sequentially
 ENV PYTHONUNBUFFERED=1
+
+COPY ./run.sh /usr/local/bin/run.sh
