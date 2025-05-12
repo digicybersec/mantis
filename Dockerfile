@@ -1,3 +1,10 @@
+FROM golang:1.22 as go-wayback-builder
+RUN git clone https://github.com/Abhinandan-Khurana/go-wayback.git
+WORKDIR go-wayback
+RUN GOOS=linux GOARCH=amd64 go build -o go-wayback v2/main.go
+RUN chmod +x go-wayback
+RUN cp go-wayback /usr/bin/
+
 FROM --platform=linux/amd64 python:3.9-slim
 
 # Install wget
@@ -15,6 +22,16 @@ RUN wget https://github.com/projectdiscovery/subfinder/releases/download/v2.6.6/
 RUN unzip subfinder_2.6.6_linux_amd64.zip
 RUN mv subfinder /usr/bin
 RUN rm -rf *
+
+# Install Go_Virustotal
+RUN echo "Installing Go_Virustotal"
+RUN wget https://github.com/Abhinandan-Khurana/go_virustotal/releases/download/v1.0.1/go_virustotal-linux-v1.0.1
+RUN mv go_virustotal-linux-v1.0.1 go_virustotal
+RUN chmod +x go_virustotal
+RUN mv go_virustotal /usr/bin/
+
+# Install Go_Wayback
+COPY --from=go-wayback-builder /usr/bin/go-wayback /usr/bin
 
 # Install HTTPX
 RUN echo "Installing HTTPX"

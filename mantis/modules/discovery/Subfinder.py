@@ -25,15 +25,15 @@ class Subfinder(ToolScanner):
     
     def parse_report(self,outfile):
         output_dict_list = []
-        amass_output = open(outfile).readlines()
-        for domain in amass_output:
+        subfinder_output = open(outfile).readlines()
+        for domain in subfinder_output:
             domain_dict = {}
             domain_dict['_id'] = domain.rstrip('\n')
             domain_dict['asset'] = domain.rstrip('\n')
             domain_dict['asset_type'] = ASSET_TYPE_SUBDOMAIN
             domain_dict['org'] = self.org
+            domain_dict['tools_source'] = 'subfinder'
             output_dict_list.append(domain_dict)
-
         return output_dict_list
     
     async def db_operations(self, tool_output_dict, asset=None):
