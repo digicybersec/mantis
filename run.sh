@@ -9,5 +9,8 @@ fi
 if [ -n "$WORKFLOW" ]; then
 	ARGS="$ARGS -w $WORKFLOW"
 fi
+if [ -n "$SUB" ]; then
+	ARGS="$ARGS --sub $SUB"
+fi
 
 python3.9 launch.py $ARGS
