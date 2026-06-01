@@ -28,6 +28,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ env.VERSION }}, ${{ env.REGISTRY }}/${{ env.SERVICE }}:latest
+          tags: ${{ env.REGISTRY }}/${{ env.SERVICE }}:${{ env.VERSION }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.SERVICE }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.SERVICE }}:buildcache,mode=max
