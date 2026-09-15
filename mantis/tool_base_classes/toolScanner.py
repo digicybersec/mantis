@@ -2,11 +2,16 @@ from mantis.utils.common_utils import CommonUtils
 from subprocess import Popen, PIPE, DEVNULL
 from mantis.models.args_model import ArgsModel
 import logging
+import os
+import signal
 import sys
 import time
 import asyncio
 
 class ToolScanner:
+
+    command_timeout_seconds = 1800
+    termination_grace_seconds = 5
     
     def __init__(self) -> None:
         self.org = None
@@ -62,9 +67,43 @@ class ToolScanner:
             start = time.perf_counter()
 
             subprocess_obj = await asyncio.create_subprocess_shell(
-                command, stderr=DEVNULL, stdout=DEVNULL, shell=True) 
-            code = await subprocess_obj.wait()
-            output,errors = await subprocess_obj.communicate()
+                command, stderr=DEVNULL, stdout=DEVNULL, shell=True,
+                start_new_session=True)
+            try:
+                output,errors = await asyncio.wait_for(
+                    subprocess_obj.communicate(),
+                    timeout=self.command_timeout_seconds)
+                code = subprocess_obj.returncode
+            except asyncio.TimeoutError:
+                logging.warning(
+                    f"Command timed out after {self.command_timeout_seconds} seconds for {asset} "
+                    f"in tool {type(self).__name__}")
+                try:
+                    os.killpg(subprocess_obj.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+                try:
+                    code = await asyncio.wait_for(
+                        subprocess_obj.wait(),
+                        timeout=self.termination_grace_seconds)
+                except asyncio.TimeoutError:
+                    try:
+                        os.killpg(subprocess_obj.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    code = await subprocess_obj.wait()
+
+                results["code"] = code
+                results["output"] = None
+                results["errors"] = None
+                results["asset"] = asset
+                results["command"] = command
+                results["success"] = 0
+                results["failure"] = 1
+                results["command_exec_time"] = round(time.perf_counter() - start, 2)
+                results["exception"] = (
+                    f"Command timed out after {self.command_timeout_seconds} seconds")
+                return results
 
             finish = time.perf_counter()
 
